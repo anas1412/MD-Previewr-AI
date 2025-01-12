@@ -117,16 +117,11 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)`;
 
-          // Update the markdown variable
           this.markdown = template;
-
-          // Destroy the existing EasyMDE instance
           if (this.easyMDE) {
             this.easyMDE.toTextArea(); // Revert the editor to a textarea
             this.easyMDE = null; // Clear the EasyMDE instance
           }
-
-          // Reinitialize the EasyMDE editor with the new template
           const editorElement = document.getElementById('markdown-editor');
           if (editorElement) {
             this.easyMDE = new EasyMDE({
@@ -153,26 +148,18 @@ Pull requests are welcome. For major changes, please open an issue first to disc
                 },
               ],
             });
-
-            // Sync height with the preview area
             const syncHeight = () => {
               setTimeout(() => {
                 const editorHeight = this.easyMDE.codemirror.getScrollInfo().height;
                 this.editorHeight = `${Math.max(editorHeight, 384)}px`;
               }, 0);
             };
-
-            // Update markdown variable on any content change
             this.easyMDE.codemirror.on('change', () => {
               this.markdown = this.easyMDE.value();
               syncHeight();
             });
-
-            // Initial height sync
             syncHeight();
           }
-
-          // Reset loading state
           this.isGenerating = false;
         },
 
