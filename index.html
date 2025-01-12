@@ -20,15 +20,12 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      /* Hide scrollbar for Chrome, Safari, and Opera */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
-
-      /* Hide scrollbar for IE, Edge, and Firefox */
       .no-scrollbar {
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
     </style>
   </head>
@@ -36,61 +33,225 @@
     <div
       x-data="{
         markdown: '',
-        editorHeight: '24rem', // Default height
+        editorHeight: '24rem',
+        easyMDE: null,
+        isGenerating: false,
+        isFixing: false,
+        isCopying: false,
+        isExporting: false,
+
         initEditor() {
-          const easyMDE = new EasyMDE({
-            element: document.getElementById('markdown-editor'),
+          const editorElement = document.getElementById('markdown-editor');
+          if (!editorElement) {
+            console.error('Textarea element not found!');
+            return;
+          }
+
+          this.easyMDE = new EasyMDE({
+            element: editorElement,
             initialValue: this.markdown,
             autoDownloadFontAwesome: false,
             spellChecker: false,
             placeholder: 'Write your Markdown here...',
-            minHeight: '24rem', // Set a minimum height for the editor
+            minHeight: '24rem',
+            toolbar: [
+              'bold', 'italic', 'heading', '|',
+              'quote', 'unordered-list', 'ordered-list', '|',
+              'link', 'image', '|',
+              'preview', 'side-by-side', 'fullscreen', '|',
+              {
+                name: 'code',
+                action: (editor) => {
+                  const cm = editor.codemirror;
+                  const selectedText = cm.getSelection();
+                  cm.replaceSelection('```\n' + selectedText + '\n```');
+                },
+                className: 'fa fa-code',
+                title: 'Insert Code Block',
+              },
+            ],
           });
 
-          // Sync height with the preview area
           const syncHeight = () => {
-            // Use setTimeout to ensure the editor has fully rendered
             setTimeout(() => {
-              const editorHeight = easyMDE.codemirror.getScrollInfo().height;
-              this.editorHeight = `${Math.max(editorHeight, 384)}px`; // Ensure a minimum height
+              const editorHeight = this.easyMDE.codemirror.getScrollInfo().height;
+              this.editorHeight = `${Math.max(editorHeight, 384)}px`;
             }, 0);
           };
 
-          // Update height on any content change
-          easyMDE.codemirror.on('change', () => {
-            this.markdown = easyMDE.value();
-            syncHeight(); // Sync height after content changes
+          this.easyMDE.codemirror.on('change', () => {
+            this.markdown = this.easyMDE.value();
+            syncHeight();
           });
 
-          // Initial height sync
           syncHeight();
+        },
+
+        generateTemplate() {
+          this.isGenerating = true;
+
+          // GitHub Readme Template
+          const template = `# Project Title
+
+## Description
+A brief description of your project.
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+\`\`\`bash
+npm install
+\`\`\`
+
+## Usage
+\`\`\`bash
+npm start
+\`\`\`
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)`;
+
+          // Update the markdown variable
+          this.markdown = template;
+
+          // Destroy the existing EasyMDE instance
+          if (this.easyMDE) {
+            this.easyMDE.toTextArea(); // Revert the editor to a textarea
+            this.easyMDE = null; // Clear the EasyMDE instance
+          }
+
+          // Reinitialize the EasyMDE editor with the new template
+          const editorElement = document.getElementById('markdown-editor');
+          if (editorElement) {
+            this.easyMDE = new EasyMDE({
+              element: editorElement,
+              initialValue: this.markdown,
+              autoDownloadFontAwesome: false,
+              spellChecker: false,
+              placeholder: 'Write your Markdown here...',
+              minHeight: '24rem',
+              toolbar: [
+                'bold', 'italic', 'heading', '|',
+                'quote', 'unordered-list', 'ordered-list', '|',
+                'link', 'image', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                {
+                  name: 'code',
+                  action: (editor) => {
+                    const cm = editor.codemirror;
+                    const selectedText = cm.getSelection();
+                    cm.replaceSelection('```\n' + selectedText + '\n```');
+                  },
+                  className: 'fa fa-code',
+                  title: 'Insert Code Block',
+                },
+              ],
+            });
+
+            // Sync height with the preview area
+            const syncHeight = () => {
+              setTimeout(() => {
+                const editorHeight = this.easyMDE.codemirror.getScrollInfo().height;
+                this.editorHeight = `${Math.max(editorHeight, 384)}px`;
+              }, 0);
+            };
+
+            // Update markdown variable on any content change
+            this.easyMDE.codemirror.on('change', () => {
+              this.markdown = this.easyMDE.value();
+              syncHeight();
+            });
+
+            // Initial height sync
+            syncHeight();
+          }
+
+          // Reset loading state
+          this.isGenerating = false;
+        },
+
+        fixWithAI() {
+          this.isFixing = true;
+          setTimeout(() => {
+            this.isFixing = false;
+            alert('AI functionality is not implemented yet.');
+          }, 1000);
+        },
+
+        async copyMarkdown() {
+          this.isCopying = true;
+          try {
+            await navigator.clipboard.writeText(this.markdown);
+            alert('Markdown copied to clipboard!');
+          } catch (error) {
+            alert('Failed to copy Markdown. Please try again.');
+          } finally {
+            this.isCopying = false;
+          }
+        },
+
+        exportMarkdown() {
+          this.isExporting = true;
+          try {
+            const blob = new Blob([this.markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Markdown exported successfully!');
+          } catch (error) {
+            alert('Failed to export Markdown. Please try again.');
+          } finally {
+            this.isExporting = false;
+          }
         }
       }"
       x-init="initEditor()"
       class="min-h-screen p-8"
     >
       <div class="max-w-7xl mx-auto">
-        <!-- Header -->
         <header class="text-center mb-12">
           <h1 class="text-4xl font-bold text-gray-800">MD Previewr AI</h1>
           <p class="text-gray-600 mt-2">
             Write and preview your Readme in real-time leveraging AI.
           </p>
-          <p class="text-gray-400 mt-2">
-            Note: there is no AI here yet, just a simple markdown editor and
-            previewer.
-          </p>
         </header>
 
-        <!-- Editor and Preview Container -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Markdown Editor -->
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6 border-b border-gray-200">
               <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
               <p class="text-gray-500 text-sm">
                 GFM (GitHub Flavored Markdown) is supported here.
               </p>
+              <div class="mt-4 flex space-x-4">
+                <button
+                  @click="generateTemplate"
+                  :disabled="isGenerating"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-file-alt mr-2"></i>
+                  <span
+                    x-text="isGenerating ? 'Generating...' : 'Generate GitHub Readme Template'"
+                  ></span>
+                </button>
+                <button
+                  @click="fixWithAI"
+                  :disabled="isFixing"
+                  class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-magic mr-2"></i>
+                  <span x-text="isFixing ? 'Fixing...' : 'Fix with AI'"></span>
+                </button>
+              </div>
             </div>
             <div class="p-6">
               <textarea
@@ -102,7 +263,6 @@
             </div>
           </div>
 
-          <!-- Markdown Preview -->
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6 border-b border-gray-200">
               <h2 class="text-xl font-semibold text-gray-800">Preview</h2>
@@ -110,6 +270,24 @@
                 The preview below shows the rendered Markdown content in
                 real-time.
               </p>
+              <div class="mt-4 flex space-x-4">
+                <button
+                  @click="exportMarkdown"
+                  :disabled="isExporting"
+                  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-download mr-2"></i>
+                  <span x-text="isExporting ? 'Exporting...' : 'Export'"></span>
+                </button>
+                <button
+                  @click="copyMarkdown"
+                  :disabled="isCopying"
+                  class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-copy mr-2"></i>
+                  <span x-text="isCopying ? 'Copying...' : 'Copy'"></span>
+                </button>
+              </div>
             </div>
             <div
               x-html="marked.parse(markdown)"
