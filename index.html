@@ -19,6 +19,18 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <style>
+      /* Hide scrollbar for Chrome, Safari, and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge, and Firefox */
+      .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+    </style>
   </head>
   <body class="bg-gray-100">
     <div
@@ -37,14 +49,17 @@
 
           // Sync height with the preview area
           const syncHeight = () => {
-            const editorHeight = easyMDE.codemirror.getScrollInfo().height;
-            this.editorHeight = `${Math.max(editorHeight, 384)}px`; // Ensure a minimum height
+            // Use setTimeout to ensure the editor has fully rendered
+            setTimeout(() => {
+              const editorHeight = easyMDE.codemirror.getScrollInfo().height;
+              this.editorHeight = `${Math.max(editorHeight, 384)}px`; // Ensure a minimum height
+            }, 0);
           };
 
-          // Update height on content change
+          // Update height on any content change
           easyMDE.codemirror.on('change', () => {
             this.markdown = easyMDE.value();
-            syncHeight();
+            syncHeight(); // Sync height after content changes
           });
 
           // Initial height sync
@@ -99,7 +114,7 @@
             <div
               x-html="marked.parse(markdown)"
               :style="{ height: editorHeight }"
-              class="prose p-6 overflow-y-auto"
+              class="prose p-6 overflow-y-auto no-scrollbar"
             ></div>
           </div>
         </div>
