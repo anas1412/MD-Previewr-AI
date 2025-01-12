@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MD Previewr AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.3.5?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
       defer
@@ -61,6 +61,10 @@
           <p class="text-gray-600 mt-2">
             Write and preview your Readme in real-time leveraging AI.
           </p>
+          <p class="text-gray-400 mt-2">
+            Note: there is no AI here yet, just a simple markdown editor and
+            previewer.
+          </p>
         </header>
 
         <!-- Editor and Preview Container -->
@@ -69,6 +73,9 @@
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6 border-b border-gray-200">
               <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
+              <p class="text-gray-500 text-sm">
+                GFM (GitHub Flavored Markdown) is supported here.
+              </p>
             </div>
             <div class="p-6">
               <textarea
@@ -84,6 +91,10 @@
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6 border-b border-gray-200">
               <h2 class="text-xl font-semibold text-gray-800">Preview</h2>
+              <p class="text-gray-500 text-sm">
+                The preview below shows the rendered Markdown content in
+                real-time.
+              </p>
             </div>
             <div
               x-html="marked.parse(markdown)"
@@ -94,5 +105,14 @@
         </div>
       </div>
     </div>
+
+    <script>
+      document.addEventListener("alpine:init", () => {
+        marked.setOptions({
+          gfm: true, // GitHub Flavored Markdown
+          breaks: true, // Convert line breaks to <br>
+        });
+      });
+    </script>
   </body>
 </html>
