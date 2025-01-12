@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MD Previewr AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+      defer
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100">
+    <div
+      x-data="{
+        markdown: '',
+        editorHeight: '24rem', // Default height
+        initEditor() {
+          const easyMDE = new EasyMDE({
+            element: document.getElementById('markdown-editor'),
+            initialValue: this.markdown,
+            autoDownloadFontAwesome: false,
+            spellChecker: false,
+            placeholder: 'Write your Markdown here...',
+            minHeight: '24rem', // Set a minimum height for the editor
+          });
+
+          // Sync height with the preview area
+          const syncHeight = () => {
+            const editorHeight = easyMDE.codemirror.getScrollInfo().height;
+            this.editorHeight = `${Math.max(editorHeight, 384)}px`; // Ensure a minimum height
+          };
+
+          // Update height on content change
+          easyMDE.codemirror.on('change', () => {
+            this.markdown = easyMDE.value();
+            syncHeight();
+          });
+
+          // Initial height sync
+          syncHeight();
+        }
+      }"
+      x-init="initEditor()"
+      class="min-h-screen p-8"
+    >
+      <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-12">
+          <h1 class="text-4xl font-bold text-gray-800">MD Previewr AI</h1>
+          <p class="text-gray-600 mt-2">
+            Write and preview your Readme in real-time leveraging AI.
+          </p>
+        </header>
+
+        <!-- Editor and Preview Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Markdown Editor -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+              <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
+            </div>
+            <div class="p-6">
+              <textarea
+                id="markdown-editor"
+                x-model="markdown"
+                class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Write your Markdown here..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Markdown Preview -->
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+              <h2 class="text-xl font-semibold text-gray-800">Preview</h2>
+            </div>
+            <div
+              x-html="marked.parse(markdown)"
+              :style="{ height: editorHeight }"
+              class="prose p-6 overflow-y-auto"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
